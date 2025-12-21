@@ -38,6 +38,6 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: your-app-frontend   # Replace with your Azure Web App name
+          app-name: ResumeIQ-front   # Replace with your Azure Web App name
           publish-profile: ${{ secrets.AZURE_FRONTEND_PUBLISH_PROFILE }}
           package: frontend/dist

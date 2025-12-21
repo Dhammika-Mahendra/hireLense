@@ -1,0 +1,5 @@
+fastapi==0.126.0
+numpy==2.4.0
+pdfplumber==0.11.8
+scikit_learn==1.8.0
+sentence_transformers==5.2.0

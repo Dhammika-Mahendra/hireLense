@@ -1,0 +1,43 @@
+name: Deploy React Vite Frontend
+
+on:
+  workflow_dispatch:  # Manual trigger
+  push:
+    branches:
+      - main           # Optional: auto-deploy on 'deploy' branch
+    paths:
+      - 'frontend/**'
+      - '!frontend/node_modules/**'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repository
+      - uses: actions/checkout@v4
+
+      # Setup Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'   # Caches npm dependencies automatically
+
+      # Install dependencies
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      # Build Vite app
+      - name: Build Vite app
+        working-directory: frontend
+        run: npm run build
+
+      # Deploy to Azure Web App
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: your-app-frontend   # Replace with your Azure Web App name
+          publish-profile: ${{ secrets.AZURE_FRONTEND_PUBLISH_PROFILE }}
+          package: frontend/dist

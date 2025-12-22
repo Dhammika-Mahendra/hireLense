@@ -70,7 +70,7 @@ export default function App() {
             Resume Ranking
           </h1>
           <p className="text-sm sm:text-base text-center text-gray-600 mb-6 sm:mb-8">
-            Upload Your resumes and job description to get your score.
+            Upload Your resumes and job description to get your score
           </p>
 
           

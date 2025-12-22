@@ -1,74 +1,46 @@
-name: Build and Push Docker Images
+name: Build and Deploy Multi-Container App
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    branches: [ main ]
+
+env:
+  REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+  IMAGE_TAG: latest
+  AZURE_WEBAPP_NAME: ResumeIQ
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    env:
-      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
-      IMAGE_TAG: ${{ github.sha }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Free up disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/share/boost
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          docker system prune -af
+      - uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Log in to Docker Hub
+      - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      - name: Build images with Compose
-        run: docker compose -f docker-compose.yml build
+      - name: Build images
+        run: docker compose build
 
-      - name: Push images (stack)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: docker compose -f docker-compose.yml push
+      - name: Push images
+        run: docker compose push
 
-      - name: Tag and push latest
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          docker tag "$REGISTRY_USERNAME/hirelens-frontend:$IMAGE_TAG" "$REGISTRY_USERNAME/hirelens-frontend:latest"
-          docker tag "$REGISTRY_USERNAME/hirelens-backend:$IMAGE_TAG" "$REGISTRY_USERNAME/hirelens-backend:latest"
-          docker push "$REGISTRY_USERNAME/hirelens-frontend:latest"
-          docker push "$REGISTRY_USERNAME/hirelens-backend:latest"
-
-  deploy-to-azure:
+  deploy:
     needs: build-and-push
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    env:
-      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
-      IMAGE_TAG: latest
-      AZURE_WEBAPP_NAME: ResumeIQ
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
 
-      - name: Deploy to Azure Web App (multi-container)
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          images: |
-            ${{ env.REGISTRY_USERNAME }}/hirelens-frontend:${{ env.IMAGE_TAG }}
-            ${{ env.REGISTRY_USERNAME }}/hirelens-backend:${{ env.IMAGE_TAG }}
           configuration-file: docker-compose.yml

@@ -8,6 +8,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5137:5137"
+    environment:
+      - VITE_BACKEND_URL=${resumeiq-fde3bpfddkbugjf5.southindia-01.azurewebsites.net}
     networks:
       - hirelens-network
 

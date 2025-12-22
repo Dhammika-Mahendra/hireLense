@@ -9,7 +9,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef(null);
-  const backendUrl = (import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+  const backendUrl = (import.meta.env.VITE_BACKEND_URL).replace(/\/$/, "");
 
   const handleDrag = (e) => {
     e.preventDefault();

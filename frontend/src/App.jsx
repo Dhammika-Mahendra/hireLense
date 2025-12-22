@@ -9,6 +9,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef(null);
+  const backendUrl = (import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -52,7 +53,8 @@ export default function App() {
     }
 
     try {
-      const res = await axios.post("http://127.0.0.1:8000/rank", formData);
+      const res = await axios.post(`${backendUrl}/rank`, formData);
+      console.log(`URL: ${backendUrl}`);
       setResults(res.data.results);
     } catch {
       setError("Backend not running or CORS issue");

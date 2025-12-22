@@ -12,6 +12,8 @@ on:
 
 env:
   REGISTRY: docker.io
+  AZURE_WEBAPP_NAME: ResumeIQ-front
+  AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
 
 jobs:
   build-and-deploy:
@@ -67,9 +69,28 @@ jobs:
           sed "s/\${REGISTRY_USERNAME}/${{ secrets.REGISTRY_USERNAME }}/g" docker-compose.yml > docker-compose.azure.yml
           cat docker-compose.azure.yml
 
-      - name: Deploy multi-container app to Azure Web App
-        uses: azure/webapps-deploy@v3
+      - name: Azure login
+        uses: azure/login@v2
         with:
-          app-name: ResumeIQ-front  # Your Azure Web App name
-          publish-profile: ${{ secrets.AZURE_FRONTEND_PUBLISH_PROFILE }}
-          configuration-file: docker-compose.azure.yml
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Configure App Service for Docker Compose
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az webapp config container set \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+              --name ${{ env.AZURE_WEBAPP_NAME }} \
+              --docker-registry-server-url https://index.docker.io \
+              --docker-registry-server-user ${{ secrets.REGISTRY_USERNAME }} \
+              --docker-registry-server-password ${{ secrets.REGISTRY_PASSWORD }} \
+              --multicontainer-config-type compose \
+              --multicontainer-config-file docker-compose.azure.yml
+
+      - name: Restart Web App
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az webapp restart \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+              --name ${{ env.AZURE_WEBAPP_NAME }}

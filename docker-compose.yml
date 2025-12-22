@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   frontend:
+    image: ${REGISTRY_USERNAME:-yourdockeruser}/hirelens-frontend:${IMAGE_TAG:-latest}
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -11,6 +12,7 @@ services:
       - hirelens-network
 
   backend:
+    image: ${REGISTRY_USERNAME:-yourdockeruser}/hirelens-backend:${IMAGE_TAG:-latest}
     build:
       context: ./backend
       dockerfile: Dockerfile

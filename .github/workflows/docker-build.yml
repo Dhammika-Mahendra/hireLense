@@ -11,6 +11,9 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    env:
+      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+      IMAGE_TAG: ${{ github.sha }}
 
     steps:
       - name: Checkout repository
@@ -25,22 +28,39 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      - name: Build and push frontend image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-          tags: |
-            ${{ secrets.REGISTRY_USERNAME }}/hirelens-frontend:latest
-            ${{ secrets.REGISTRY_USERNAME }}/hirelens-frontend:${{ github.sha }}
+      - name: Build images with Compose
+        run: docker compose -f docker-compose.yml build
 
-      - name: Build and push backend image
-        uses: docker/build-push-action@v4
+      - name: Push images (stack)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: docker compose -f docker-compose.yml push
+
+      - name: Tag and push latest
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          docker tag "$REGISTRY_USERNAME/hirelens-frontend:$IMAGE_TAG" "$REGISTRY_USERNAME/hirelens-frontend:latest"
+          docker tag "$REGISTRY_USERNAME/hirelens-backend:$IMAGE_TAG" "$REGISTRY_USERNAME/hirelens-backend:latest"
+          docker push "$REGISTRY_USERNAME/hirelens-frontend:latest"
+          docker push "$REGISTRY_USERNAME/hirelens-backend:latest"
+
+  deploy-to-azure:
+    needs: build-and-push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+      IMAGE_TAG: latest
+      AZURE_WEBAPP_NAME: ResumeIQ
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Deploy to Azure Web App (multi-container)
+        uses: azure/webapps-deploy@v2
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-          tags: |
-            ${{ secrets.REGISTRY_USERNAME }}/hirelens-backend:latest
-            ${{ secrets.REGISTRY_USERNAME }}/hirelens-backend:${{ github.sha }}
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          images: |
+            ${{ env.REGISTRY_USERNAME }}/hirelens-frontend:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY_USERNAME }}/hirelens-backend:${{ env.IMAGE_TAG }}
+          configuration-file: docker-compose.yml

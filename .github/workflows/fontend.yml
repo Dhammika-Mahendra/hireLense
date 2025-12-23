@@ -1,9 +1,8 @@
-on:
-
 name: Frontend Docker Deploy
 
-
+on:
   workflow_dispatch:
+
 env:
   REGISTRY: docker.io
   IMAGE_NAME: hirelens-frontend

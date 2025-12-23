@@ -46,6 +46,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_BACKEND_URL=${{ secrets.VITE_BACKEND_URL }}
 
       - name: Deploy container to Azure Web App
         uses: azure/webapps-deploy@v3

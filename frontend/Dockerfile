@@ -23,3 +23,6 @@ EXPOSE 5137
 
 # Command to run the application
 CMD ["npm", "run", "dev"]
+
+ARG VITE_BACKEND_URL
+ENV VITE_BACKEND_URL=$VITE_BACKEND_URL

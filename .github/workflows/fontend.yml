@@ -1,13 +1,9 @@
+on:
+
 name: Frontend Docker Deploy
 
-on:
-  push:
-    branches: [ "main" ]
-    paths:
-      - "frontend/**"
-      - ".github/workflows/frontend.yml"
-  workflow_dispatch:
 
+  workflow_dispatch:
 env:
   REGISTRY: docker.io
   IMAGE_NAME: hirelens-frontend

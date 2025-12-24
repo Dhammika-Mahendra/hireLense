@@ -9,7 +9,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef(null);
-  const backendUrl = "resumeiqback-d5f6bgerhnb4d3gt.centralindia-01.azurewebsites.net";
+  const backendUrl = "https://resumeiqback-d5f6bgerhnb4d3gt.centralindia-01.azurewebsites.net";
 
   const handleDrag = (e) => {
     e.preventDefault();

@@ -9,7 +9,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef(null);
-  const backendUrl = import.meta.env.VITE_BACKEND_API || "http://localhost:8000";
+  const backendUrl = "resumeiqback-d5f6bgerhnb4d3gt.centralindia-01.azurewebsites.net";
 
   const handleDrag = (e) => {
     e.preventDefault();
